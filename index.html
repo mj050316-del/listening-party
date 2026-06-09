@@ -47,7 +47,6 @@ html, body {
 }
 #visitors-input {
   position: absolute;
-  width: 310px;
   pointer-events: all;
   font-family: '굴림', 'Gulim', sans-serif;
 }
@@ -733,8 +732,9 @@ function positionVisitors() {
   const left = offsetX + 999 * scale;
   const top  = offsetY + 280 * scale;
   const el = document.getElementById('visitors-input');
-  el.style.left = left + 'px';
-  el.style.top  = top  + 'px';
+  el.style.left  = left + 'px';
+  el.style.top   = top  + 'px';
+  el.style.width = ((1309 - 999) * scale) + 'px';  // SVG x:999 ~ x:1309
 
   // 트랙1 버튼 위치 (SVG x:1003 y:548)
   const s1 = document.getElementById('sound-btn');
