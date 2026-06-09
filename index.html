@@ -379,6 +379,46 @@ html, body {
   transition: width 0.08s, height 0.08s;
 }
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBSh5zpvFMT1O2fdgCNKkltCBabFJRQYMI",
+    authDomain: "listening-party-0610.firebaseapp.com",
+    databaseURL: "https://listening-party-0610-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "listening-party-0610",
+    storageBucket: "listening-party-0610.firebasestorage.app",
+    messagingSenderId: "506424621138",
+    appId: "1:506424621138:web:bfc2095d78aecea49b878b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  const msgsRef = ref(db, 'messages');
+
+  // 실시간으로 메시지 받아서 렌더링
+  onValue(msgsRef, (snapshot) => {
+    const box = document.getElementById('messages');
+    if (!box) return;
+    const data = snapshot.val();
+    if (!data) { box.innerHTML = ''; return; }
+    const items = Object.values(data).slice(-30); // 최근 30개
+    box.innerHTML = items.map(m =>
+      `<div class="msg-item"><span class="msg-name">${esc(m.name)}</span>${esc(m.msg)}</div>`
+    ).join('');
+    box.scrollTop = box.scrollHeight;
+  });
+
+  // 전송 함수를 전역으로 노출
+  window.firebaseSendMsg = (name, msg) => {
+    push(msgsRef, { name, msg, time: Date.now() });
+  };
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
 </head>
 <body>
 
@@ -941,6 +981,40 @@ function esc(s) {
 }
 document.getElementById('input-msg').addEventListener('keydown', e => {
   if (e.key === 'Enter') sendMsg();
+});
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBSh5zpvFMT1O2fdgCNKkltCBabFJRQYMI",
+  authDomain: "listening-party-0610.firebaseapp.com",
+  databaseURL: "https://listening-party-0610-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "listening-party-0610",
+  storageBucket: "listening-party-0610.firebasestorage.app",
+  messagingSenderId: "506424621138",
+  appId: "1:506424621138:web:bfc2095d78aecea49b878b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const msgsRef = ref(db, 'messages');
+
+// 전역으로 push 함수 노출
+window.fbPush = (name, msg) => push(msgsRef, { name, msg, time: Date.now() });
+
+// 실시간 메시지 수신
+onValue(msgsRef, (snapshot) => {
+  const box = document.getElementById('messages');
+  const data = snapshot.val();
+  if (!data) { box.innerHTML = ''; return; }
+  const list = Object.values(data).slice(-30);
+  box.innerHTML = list.map(m =>
+    `<div class="msg-item"><span class="msg-name">${m.name.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>${m.msg.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`
+  ).join('');
+  box.scrollTop = box.scrollHeight;
 });
 </script>
 </body>
