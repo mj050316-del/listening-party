@@ -738,28 +738,19 @@ document.querySelectorAll('input, button').forEach(el => {
 document.addEventListener('mousedown', () => cursor.classList.add('clicked'));
 document.addEventListener('mouseup',   () => cursor.classList.remove('clicked'));
 
-const msgs = [];
-window.addEventListener('pageshow', () => {
-  msgs.length = 0;
-  document.getElementById('messages').innerHTML = '';
-});
+// 메시지는 Firebase가 실시간으로 관리
 function sendMsg() {
   const name = document.getElementById('input-name').value.trim() || 'anonymous';
   const msg  = document.getElementById('input-msg').value.trim();
   if (!msg) return;
-  msgs.push({name, msg});
-  render();
+  // Firebase로 전송
+  if (window.fbPush) {
+    window.fbPush(name, msg);
+  }
   document.getElementById('input-name').value = '';
   document.getElementById('input-msg').value  = '';
 }
-function render() {
-  const box = document.getElementById('messages');
-  if (!msgs.length) { box.innerHTML = ''; return; }
-  box.innerHTML = msgs.map(m =>
-    `<div class="msg-item"><span class="msg-name">${esc(m.name)}</span>${esc(m.msg)}</div>`
-  ).join('');
-  box.scrollTop = box.scrollHeight;
-}
+// render()는 Firebase onValue에서 자동 호출됨
 /* ── 사운드 재생 ─────────────────────────────
    Web Audio API로 합성음 생성
    사운드 파일이 있으면 아래 audioSrc에 경로 넣기
