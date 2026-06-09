@@ -47,8 +47,6 @@ html, body {
 }
 #visitors-input {
   position: absolute;
-  left: calc(100vw * 999 / 1352);
-  top:  calc(100vh * 280 / 760);
   width: 310px;
   pointer-events: all;
   font-family: '굴림', 'Gulim', sans-serif;
@@ -116,8 +114,6 @@ html, body {
    ───────────────────────────────────────── */
 #sound-btn {
   position: absolute;
-  left: calc(100vw * 1003 / 1352);
-  top:  calc(100vh * 548 / 760);
   width: calc(100vw * 212 / 1352);
   height: calc(100vh * 25 / 760);
   cursor: none;
@@ -196,8 +192,6 @@ html, body {
 
 #sound2-btn {
   position: absolute;
-  left: calc(100vw * 1003 / 1352);
-  top:  calc(100vh * 597 / 760);
   width: calc(100vw * 154 / 1352);
   height: calc(100vh * 19 / 760);
   cursor: none;
@@ -727,6 +721,34 @@ html, body {
 
 <script>
 const cursor = document.getElementById('cursor');
+
+// SVG slice 보정 — Visitors 위치를 SVG 좌표계 기준으로 맞춤
+function positionVisitors() {
+  const svgW = 1352, svgH = 760;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const scale = Math.max(vw / svgW, vh / svgH);
+  const offsetX = (vw - svgW * scale) / 2;  // 좌우 잘림 보정
+  const offsetY = (vh - svgH * scale) / 2;  // 상하 잘림 보정
+  const left = offsetX + 999 * scale;
+  const top  = offsetY + 280 * scale;
+  const el = document.getElementById('visitors-input');
+  el.style.left = left + 'px';
+  el.style.top  = top  + 'px';
+
+  // 트랙1 버튼 위치 (SVG x:1003 y:548)
+  const s1 = document.getElementById('sound-btn');
+  s1.style.left = (offsetX + 1003 * scale) + 'px';
+  s1.style.top  = (offsetY + 548  * scale) + 'px';
+
+  // 트랙2 버튼 위치 (SVG x:1003 y:597)
+  const s2 = document.getElementById('sound2-btn');
+  s2.style.left = (offsetX + 1003 * scale) + 'px';
+  s2.style.top  = (offsetY + 597  * scale) + 'px';
+}
+
+positionVisitors();
+window.addEventListener('resize', positionVisitors);
 document.addEventListener('mousemove', e => {
   cursor.style.left = e.clientX + 'px';
   cursor.style.top  = e.clientY + 'px';
@@ -965,7 +987,17 @@ async function toggleSound2() {
   sound2Playing = true;
 }
 
-window.addEventListener('load', loadSound);
+// iOS: 첫 터치에서 AudioContext 활성화
+document.addEventListener('touchstart', async () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+  if (!soundBuffer) loadSound();
+}, { once: true });
+
+// 데스크탑: 페이지 로드 후 미리 로드
+window.addEventListener('load', () => {
+  if (typeof TouchEvent === 'undefined') loadSound();
+});
 
 function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
